@@ -8,7 +8,7 @@ BASHRC="$HOME/.bashrc"
 mkdir -p "$SUZUKA_GGUF_DIR/models"
 mkdir -p "$SUZUKA_GGUF_DIR/log"
 
-chmod +x ~/suzuka-gguf-alpha/bin/suzuka-gguf
+chmod +x "$SUZUKA_GGUF_DIR/bin/suzuka-gguf"
 
 if ! grep -Fqx "# suzuka-gguf" "$BASHRC"; then
     {
