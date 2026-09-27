@@ -2,23 +2,23 @@
 
 # usage: source ./path_setup.sh
 
-SUZUKA_LLAMA_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-SUZUKA_LLAMA_COMMAND_DIR="$SUZUKA_LLAMA_DIR/.bin"
-SUZUKA_LLAMA_CACHE="$SUZUKA_LLAMA_DIR/models"
+SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+SUZUKA_GGUF_COMMAND_DIR="$SUZUKA_GGUF_DIR/.bin"
+SUZUKA_GGUF_CACHE="$SUZUKA_GGUF_DIR/models"
 
-mkdir -p "$SUZUKA_LLAMA_COMMAND_DIR"
-mkdir -p "$SUZUKA_LLAMA_CACHE"
+mkdir -p "$SUZUKA_GGUF_COMMAND_DIR"
+mkdir -p "$SUZUKA_GGUF_CACHE"
 
-ln -sfn "$SUZUKA_LLAMA_DIR/suzuka-llama.py" "$SUZUKA_LLAMA_COMMAND_DIR/suzuka-llama"
+ln -sfn "$SUZUKA_GGUF_DIR/suzuka-llama.py" "$SUZUKA_GGUF_COMMAND_DIR/suzuka-llama"
 
 case ":$PATH:" in
-    *":$SUZUKA_LLAMA_COMMAND_DIR:"*)
+    *":$SUZUKA_GGUF_COMMAND_DIR:"*)
         ;;
     *)
-        export PATH="$SUZUKA_LLAMA_COMMAND_DIR:$PATH"
+        export PATH="$SUZUKA_GGUF_COMMAND_DIR:$PATH"
         ;;
 esac
 
-echo "suzuka-llama command enabled for this shell."
-echo "  Command: $SUZUKA_LLAMA_COMMAND_DIR/suzuka-llama"
-echo "  Cache:   $SUZUKA_LLAMA_CACHE"
+echo "suzuka-gguf command enabled for this shell."
+echo "  Command: $SUZUKA_GGUF_COMMAND_DIR/suzuka-gguf"
+echo "  Cache:   $SUZUKA_GGUF_CACHE"

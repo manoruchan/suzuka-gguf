@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-suzuka-llama - simple llama CLI
+suzuka-gguf - simple llama CLI
 
 A small, intentionally boring GGUF manager for llama.cpp.
 
-By default, suzuka-llama uses its own local cache and does not modify
+By default, suzuka-gguf uses its own local cache and does not modify
 the caller's LLAMA_CACHE environment. Use --cache to inspect or use
 an existing llama.cpp cache explicitly.
 
 Examples:
-suzuka-llama list
-suzuka-llama info ggml-org/gemma-4-E4B-it-GGUF
-suzuka-llama pull ggml-org/gemma-4-E4B-it-GGUF/gemma-4-E4B-it-Q4_0.gguf
-suzuka-llama remove ggml-org/gemma-4-E4B-it-GGUF
-suzuka-llama load ggml-org/gemma-4-E4B-it-GGUF
-suzuka-llama unload
-suzuka-llama call "hello"
+suzuka-gguf list
+suzuka-gguf info ggml-org/gemma-4-E4B-it-GGUF
+suzuka-gguf pull ggml-org/gemma-4-E4B-it-GGUF:Q4_0
+suzuka-gguf remove ggml-org/gemma-4-E4B-it-GGUF
+suzuka-gguf load ggml-org/gemma-4-E4B-it-GGUF
+suzuka-gguf unload
+suzuka-gguf call "hello"
 """
 
 
@@ -35,7 +35,7 @@ from pathlib import Path
 
 
 DEFAULT_CACHE = Path(__file__).resolve().parent / "models"
-STATE_DIR = Path.home() / ".local" / "state" / "suzuka-llama"
+STATE_DIR = Path.home() / ".local" / "state" / "suzuka-gguf"
 CACHE_OVERRIDE: Path | None = None
 STATE_FILE = STATE_DIR / "server.json"
 DEFAULT_HOST = "127.0.0.1"
@@ -428,7 +428,7 @@ def cmd_load(args: argparse.Namespace) -> int:
             f"Another model is already loaded: {current_target}",
             file=sys.stderr,
         )
-        print("Run `suzuka-llama unload` first.", file=sys.stderr)
+        print("Run `suzuka-gguf unload` first.", file=sys.stderr)
         return 1
 
     model_path = cached_model_file(repo, filename)
@@ -497,7 +497,7 @@ def cmd_unload(args: argparse.Namespace) -> int:
 
     if not server_is_alive(state):
         clear_state()
-        print("No suzuka-llama model is loaded.")
+        print("No suzuka-gguf model is loaded.")
         return 0
 
     pid = state["pid"]
@@ -542,7 +542,7 @@ def cmd_call(args: argparse.Namespace) -> int:
 
     if not server_is_alive(state):
         print(
-            "llama-server is not running. Run `suzuka-llama load <user>/<model>` first.",
+            "llama-server is not running. Run `suzuka-gguf load <user>/<model>` first.",
             file=sys.stderr,
         )
         return 1
@@ -651,7 +651,7 @@ def cmd_status(args: argparse.Namespace) -> int:
 
     if not server_is_alive(state):
         clear_state()
-        print("No suzuka-llama model is loaded.")
+        print("No suzuka-gguf model is loaded.")
         return 0
 
     print(f"Model  : {state['model_target']}")
@@ -663,8 +663,8 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="suzuka-llama",
-        description="llama my controller",
+        prog="suzuka-gguf",
+        description="my gguf/llama controller",
     )
 
     parser.add_argument(
