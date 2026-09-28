@@ -4,7 +4,7 @@ A small GGUF manager for llama.cpp.
 
 `suzuka-gguf` downloads GGUF models from Hugging Face, keeps them in a local cache, and helps you inspect, resolve, and serve cached models.
 
-It is intended for trying models quickly before building a more complete llama.cpp-based system. It does not replace llama.cpp or try to become an independent inference platform.
+It is primarily a GGUF cache manager. The optional `llama-server` workflow is intended for quickly trying cached models before building a more complete llama.cpp-based system. It does not replace llama.cpp or try to become an independent inference platform.
 
 ## Requirements
 
@@ -105,11 +105,10 @@ For `pull`, `LLAMA_CACHE` is set only for the `llama-cli` subprocess used for th
 
 ```text
 suzuka-gguf list
+suzuka-gguf list --minimal
+suzuka-gguf list <user>/<model>
 
 suzuka-gguf info <user>/<model>
-
-suzuka-gguf files
-suzuka-gguf files <user>/<model>
 
 suzuka-gguf path <file>
 suzuka-gguf path <file> --repo <user>/<model>
@@ -126,7 +125,9 @@ suzuka-gguf unload
 suzuka-gguf call "your prompt"
 ```
 
-## Listing Cached Repositories
+## Listing Cached Models
+
+The default `list` command shows cached GGUF model files across all repositories:
 
 ```bash
 suzuka-gguf list
@@ -136,29 +137,13 @@ Example:
 
 ```text
 Cache: /home/suzuka/suzuka-gguf/models
-LiquidAI/LFM2-24B-A2B-GGUF
-ggml-org/gemma-4-E4B-it-GGUF
-unsloth/Qwen3.6-35B-A3B-MTP-GGUF
-unsloth/gemma-4-26B-A4B-it-GGUF
-```
-
-For file-level detail, use `files`.
-
-## Inspecting Cached Files
-
-Without a repository argument, `files` shows the cached GGUF files for all repositories:
-
-```bash
-suzuka-gguf files
-```
-
-Example:
-
-```text
-Cache: /home/suzuka/suzuka-gguf/models
 
 LiquidAI/LFM2-24B-A2B-GGUF  (6247d03b87c2)
     13.4 GiB  LFM2-24B-A2B-Q4_K_M.gguf
+
+LiquidAI/LFM2.5-8B-A1B-GGUF  (49c148317070)
+     4.8 GiB  LFM2.5-8B-A1B-Q4_K_M.gguf
+     8.4 GiB  LFM2.5-8B-A1B-Q8_0.gguf
 
 ggml-org/gemma-4-E4B-it-GGUF  (b8093469224f)
      4.3 GiB  gemma-4-E4B-it-Q4_0.gguf
@@ -170,16 +155,50 @@ unsloth/gemma-4-26B-A4B-it-GGUF  (c099eb48e663)
     15.8 GiB  gemma-4-26B-A4B-it-UD-Q4_K_M.gguf
 ```
 
+To list cached repositories without file details, use `--minimal`:
+
+```bash
+suzuka-gguf list --minimal
+```
+
+Example:
+
+```text
+Cache: /home/suzuka/suzuka-gguf/models
+LiquidAI/LFM2-24B-A2B-GGUF
+LiquidAI/LFM2.5-8B-A1B-GGUF
+ggml-org/gemma-4-E4B-it-GGUF
+unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+unsloth/gemma-4-26B-A4B-it-GGUF
+```
+
 A specific repository can be inspected with:
 
 ```bash
-suzuka-gguf files unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+suzuka-gguf list ggml-org/gemma-4-E4B-it-GGUF
+```
+
+Example:
+
+```text
+   4.3 GiB  gemma-4-E4B-it-Q4_0.gguf
+ 533.9 MiB  mmproj-gemma-4-E4B-it-Q8_0.gguf
 ```
 
 ## Repository Information
 
 ```bash
-suzuka-gguf info unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+suzuka-gguf info LiquidAI/LFM2-24B-A2B-GGUF
+```
+
+Example:
+
+```text
+Repository : LiquidAI/LFM2-24B-A2B-GGUF
+Cache path : /home/suzuka/suzuka-gguf/models/models--LiquidAI--LFM2-24B-A2B-GGUF
+Size       : 13.4 GiB
+Revision   : 6247d03b87c27c05a258feb5acdfb4d5efbf0bd8
+Snapshot   : /home/suzuka/suzuka-gguf/models/models--LiquidAI--LFM2-24B-A2B-GGUF/snapshots/6247d03b87c27c05a258feb5acdfb4d5efbf0bd8
 ```
 
 Shows metadata for a cached repository.
@@ -255,7 +274,9 @@ suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF
 
 ## Server Workflow
 
-`suzuka-gguf` includes a small wrapper around `llama-server`.
+`suzuka-gguf` includes a small optional wrapper around `llama-server`.
+
+The server workflow is intended for quickly checking cached models. It is not intended to be a general-purpose inference platform and currently handles a single loaded model at a time.
 
 ```bash
 suzuka-gguf load gemma-4-E4B-it-Q4_0.gguf
@@ -274,7 +295,9 @@ suzuka-gguf load gemma-4-E4B-it-Q4_0.gguf \
     --repo ggml-org/gemma-4-E4B-it-GGUF
 ```
 
-`load` resolves the model from the cache and starts `llama-server` through the shell runtime. Logs are written to:
+`load` resolves the model from the cache and starts `llama-server` through the shell runtime.
+
+Logs are written to:
 
 ```text
 <repository>/log/server.log
@@ -300,6 +323,8 @@ suzuka-gguf call \
 
 ## Typical Workflow
 
+`suzuka-gguf` is primarily intended to manage a local GGUF cache and resolve models for whichever llama.cpp build you want to use.
+
 ```bash
 # 1. Find a GGUF on Hugging Face
 
@@ -307,7 +332,7 @@ suzuka-gguf call \
 suzuka-gguf pull <user>/<model>:<quantize>
 
 # 3. Inspect the cache
-suzuka-gguf files
+suzuka-gguf list
 
 # 4. Resolve the model path
 suzuka-gguf path <file>
@@ -316,23 +341,28 @@ suzuka-gguf path <file>
 llama-cli -m "$(suzuka-gguf path <file>)"
 ```
 
-Or use the built-in server workflow:
+Or use the optional server workflow for a quick test:
 
 ```bash
 # 1. Pull
 suzuka-gguf pull <user>/<model>:<quantize>
 
-# 2. Load
+# 2. Inspect
+suzuka-gguf list
+
+# 3. Load
 suzuka-gguf load <file> --repo <user>/<model>
 
-# 3. Call
+# 4. Call
 suzuka-gguf call "Hello!"
 
-# 4. Stop
+# 5. Stop
 suzuka-gguf unload
 ```
 
 ## Design
+
+`suzuka-gguf` is primarily a cache manager and model resolver.
 
 ```text
                      Hugging Face
@@ -347,7 +377,9 @@ suzuka-gguf unload
              ▼            ▼            ▼
            cache        inspect      resolve
              │            │            │
-             │        list/files/info  │
+             │           list         path
+             │       list --minimal   │
+             │       list <repo>      │
              │                         │
              └────────────┬────────────┘
                           ▼
