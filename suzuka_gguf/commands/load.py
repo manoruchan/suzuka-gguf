@@ -19,7 +19,7 @@ def register_parser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--threads", type=int)
     parser.add_argument("--reasoning")
-    parser.add_argument("--timeout", type=float, default=60.0)
+    parser.add_argument("--timeout", type=float, default=300.0)
     parser.set_defaults(func=execute)
 
 
