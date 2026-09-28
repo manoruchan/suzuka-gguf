@@ -9,7 +9,6 @@ from suzuka_gguf import commands
 COMMAND_MODULES = [
     commands.list,
     commands.info,
-    commands.files,
     commands.path,
     commands.pull,
     commands.remove,
