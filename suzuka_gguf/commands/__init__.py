@@ -1,5 +1,4 @@
 from suzuka_gguf.commands import call
-from suzuka_gguf.commands import files
 from suzuka_gguf.commands import info
 from suzuka_gguf.commands import list
 from suzuka_gguf.commands import load
