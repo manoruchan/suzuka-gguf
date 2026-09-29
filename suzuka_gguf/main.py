@@ -12,10 +12,7 @@ COMMAND_MODULES = [
     commands.path,
     commands.pull,
     commands.remove,
-    commands.load,
-    commands.unload,
     commands.call,
-    commands.status,
 ]
 
 def main() -> int:
