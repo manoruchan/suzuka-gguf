@@ -2,9 +2,7 @@
 
 A small GGUF manager for llama.cpp.
 
-`suzuka-gguf` downloads GGUF models from Hugging Face, keeps them in a local cache, and helps you inspect, resolve, and serve cached models.
-
-It is primarily a GGUF cache manager. The optional `llama-server` workflow is intended for quickly trying cached models before building a more complete llama.cpp-based system. It does not replace llama.cpp or try to become an independent inference platform.
+`suzuka-gguf` downloads GGUF models from Hugging Face, keeps them in a local cache, and helps you inspect and resolve cached models.
 
 ## Requirements
 
@@ -42,7 +40,6 @@ The setup registers `init_suzuka_gguf.sh` in `.bashrc`. When sourced, `init_suzu
 
 * adds `bin/` to `$PATH`
 * creates the default model cache if necessary
-* starts a `suzuka-gguf` runtime for the current shell
 
 The repository has the following structure:
 
@@ -50,7 +47,6 @@ The repository has the following structure:
 suzuka-gguf/
 ├── bin/
 │   └── suzuka-gguf
-├── log/
 ├── models/
 ├── init_suzuka_gguf.sh
 ├── setup_suzuka_gguf.sh
@@ -60,7 +56,7 @@ suzuka-gguf/
     └── main.py
 ```
 
-`models/` and `log/` are runtime-generated directories and are ignored by Git.
+`models/` is a runtime-generated directory and is ignored by Git.
 
 ## Cache
 
@@ -267,7 +263,7 @@ suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF
 suzuka-gguf call "Explain what a GGUF file is."
 ```
 
-Sends the prompt to the local `llama-server` OpenAI-compatible API and streams the response.
+Sends the prompt to a running local `llama-server` OpenAI-compatible API and streams the response.
 
 ## Typical Workflow
 
@@ -315,4 +311,4 @@ llama-cli -m "$(suzuka-gguf path <file>)"
                    any llama.cpp build
 ```
 
-`suzuka-gguf` manages models and a thin server workflow. It provides a bridge between the model ecosystem on Hugging Face and the llama.cpp build you actually want to use.
+`suzuka-gguf` manages GGUF models and provides a bridge between the model ecosystem on Hugging Face and the llama.cpp build you actually want to use.
