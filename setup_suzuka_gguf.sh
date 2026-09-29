@@ -13,7 +13,7 @@ if ! grep -Fqx "# suzuka-gguf" "$BASHRC"; then
     {
         echo
         echo "# suzuka-gguf"
-        echo "source \"$SUZUKA_GGUF_DIR/shell_setup.sh\""
+        echo "source \"$SUZUKA_GGUF_DIR/init_suzuka_gguf.sh\""
     } >> "$BASHRC"
 else
     echo "Warning: existing suzuka-gguf configuration found in $BASHRC." >&2
