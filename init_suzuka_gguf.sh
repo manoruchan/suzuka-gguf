@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# usage: source ./shell_setup.sh
-
 SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SUZUKA_GGUF_COMMAND_DIR="$SUZUKA_GGUF_DIR/bin"
 SUZUKA_GGUF_CACHE="$SUZUKA_GGUF_DIR/models"

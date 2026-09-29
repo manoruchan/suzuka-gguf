@@ -38,7 +38,7 @@ bash setup_suzuka_gguf.sh
 source ~/.bashrc
 ```
 
-The setup registers `shell_setup.sh` in `.bashrc`. When sourced, `shell_setup.sh`:
+The setup registers `init_suzuka_gguf.sh` in `.bashrc`. When sourced, `init_suzuka_gguf.sh`:
 
 * adds `bin/` to `$PATH`
 * creates the default model cache if necessary
@@ -52,7 +52,7 @@ suzuka-gguf/
 │   └── suzuka-gguf
 ├── log/
 ├── models/
-├── shell_setup.sh
+├── init_suzuka_gguf.sh
 ├── setup_suzuka_gguf.sh
 └── suzuka_gguf/
     ├── commands/
@@ -61,12 +61,6 @@ suzuka-gguf/
 ```
 
 `models/` and `log/` are runtime-generated directories and are ignored by Git.
-
-## Shell Runtime
-
-The optional `llama-server` workflow runs through a small background runtime, started when `shell_setup.sh` is sourced.
-
-The runtime belongs to the shell session it was started in and is terminated when that shell exits. Server state is kept in the runtime's process memory and scoped to that session.
 
 ## Cache
 
@@ -117,11 +111,6 @@ suzuka-gguf pull <user>/<model>[:<quantize>]
 
 suzuka-gguf remove <user>/<model>
 
-suzuka-gguf load <file>
-suzuka-gguf load <file> --repo <user>/<model>
-
-suzuka-gguf status
-suzuka-gguf unload
 suzuka-gguf call "your prompt"
 ```
 
@@ -272,41 +261,6 @@ suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF
 
 **Warning:** `remove` deletes the entire cached repository, including all downloaded GGUF files. It does not currently support removing an individual file, and the operation cannot be undone.
 
-## Server Workflow
-
-`suzuka-gguf` includes a small optional wrapper around `llama-server`.
-
-The server workflow is intended for quickly checking cached models. It is not intended to be a general-purpose inference platform and currently handles a single loaded model at a time.
-
-```bash
-suzuka-gguf load gemma-4-E4B-it-Q4_0.gguf
-
-suzuka-gguf status
-
-suzuka-gguf call "Hello!"
-
-suzuka-gguf unload
-```
-
-If the filename is not unique, specify the repository:
-
-```bash
-suzuka-gguf load gemma-4-E4B-it-Q4_0.gguf \
-    --repo ggml-org/gemma-4-E4B-it-GGUF
-```
-
-`load` resolves the model from the cache and starts `llama-server` through the shell runtime.
-
-Logs are written to:
-
-```text
-<repository>/log/server.log
-```
-
-The log is overwritten when a new model is loaded and is not tracked by Git.
-
-`status` reports the currently loaded model, and `unload` stops it explicitly. The server also stops automatically when the shell that loaded it exits.
-
 ## Calling the Model
 
 ```bash
@@ -314,12 +268,6 @@ suzuka-gguf call "Explain what a GGUF file is."
 ```
 
 Sends the prompt to the local `llama-server` OpenAI-compatible API and streams the response.
-
-```bash
-suzuka-gguf call \
-    "Explain this code." \
-    --reasoning-effort medium
-```
 
 ## Typical Workflow
 
@@ -339,25 +287,6 @@ suzuka-gguf path <file>
 
 # 5. Run it with your own llama.cpp build
 llama-cli -m "$(suzuka-gguf path <file>)"
-```
-
-Or use the optional server workflow for a quick test:
-
-```bash
-# 1. Pull
-suzuka-gguf pull <user>/<model>:<quantize>
-
-# 2. Inspect
-suzuka-gguf list
-
-# 3. Load
-suzuka-gguf load <file> --repo <user>/<model>
-
-# 4. Call
-suzuka-gguf call "Hello!"
-
-# 5. Stop
-suzuka-gguf unload
 ```
 
 ## Design
@@ -384,24 +313,6 @@ suzuka-gguf unload
              └────────────┬────────────┘
                           ▼
                    any llama.cpp build
-```
-
-The optional server workflow:
-
-```text
-suzuka-gguf load
-       │
-       ▼
-shell runtime
-       │
-       ▼
-llama-server
-       │
-       ▼
-OpenAI-compatible API
-       │
-       ▼
-suzuka-gguf call
 ```
 
 `suzuka-gguf` manages models and a thin server workflow. It provides a bridge between the model ecosystem on Hugging Face and the llama.cpp build you actually want to use.
