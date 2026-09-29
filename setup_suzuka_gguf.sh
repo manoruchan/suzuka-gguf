@@ -6,7 +6,6 @@ SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 BASHRC="$HOME/.bashrc"
 
 mkdir -p "$SUZUKA_GGUF_DIR/models"
-mkdir -p "$SUZUKA_GGUF_DIR/log"
 
 chmod +x "$SUZUKA_GGUF_DIR/bin/suzuka-gguf"
 
@@ -24,7 +23,6 @@ fi
 echo "Configured suzuka-gguf:"
 echo "  Repository: $SUZUKA_GGUF_DIR"
 echo "  Cache:      $SUZUKA_GGUF_DIR/models"
-echo "  Log:        $SUZUKA_GGUF_DIR/log"
 echo
 echo "Run:"
 echo "  source ~/.bashrc"
