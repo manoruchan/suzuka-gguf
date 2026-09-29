@@ -15,6 +15,8 @@ case ":$PATH:" in
         ;;
 esac
 
+source "$SUZUKA_GGUF_DIR/suzuka_gguf_completion.bash"
+
 echo "suzuka-gguf command enabled for this shell."
 echo "  Command: $SUZUKA_GGUF_COMMAND_DIR/suzuka-gguf"
 echo "  Cache:   $SUZUKA_GGUF_CACHE"
