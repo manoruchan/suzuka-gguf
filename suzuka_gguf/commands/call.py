@@ -7,8 +7,6 @@ import time
 import urllib.error
 import urllib.request
 
-from suzuka_gguf.components import runtime
-
 
 def register_parser(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser(
