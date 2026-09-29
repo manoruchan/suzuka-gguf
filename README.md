@@ -41,21 +41,6 @@ The setup registers `init_suzuka_gguf.sh` in `.bashrc`. When sourced, `init_suzu
 * adds `bin/` to `$PATH`
 * creates the default model cache if necessary
 
-The repository has the following structure:
-
-```text
-suzuka-gguf/
-├── bin/
-│   └── suzuka-gguf
-├── models/
-├── init_suzuka_gguf.sh
-├── setup_suzuka_gguf.sh
-└── suzuka_gguf/
-    ├── commands/
-    ├── components/
-    └── main.py
-```
-
 `models/` is a runtime-generated directory and is ignored by Git.
 
 ## Cache
@@ -303,8 +288,8 @@ llama-cli -m "$(suzuka-gguf path <file>)"
            cache        inspect      resolve
              │            │            │
              │           list         path
-             │       list --minimal   │
-             │       list <repo>      │
+             │                         │
+             │                         │
              │                         │
              └────────────┬────────────┘
                           ▼
