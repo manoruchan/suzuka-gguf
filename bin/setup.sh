@@ -2,18 +2,20 @@
 
 set -euo pipefail
 
-SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
 BASHRC="$HOME/.bashrc"
 
 mkdir -p "$SUZUKA_GGUF_DIR/models"
 
 chmod +x "$SUZUKA_GGUF_DIR/bin/suzuka-gguf"
+chmod +x "$SUZUKA_GGUF_DIR/bin/sllama-server"
 
 if ! grep -Fqx "# suzuka-gguf" "$BASHRC"; then
     {
         echo
         echo "# suzuka-gguf"
-        echo "source \"$SUZUKA_GGUF_DIR/init_suzuka_gguf.sh\""
+        echo "source \"$SUZUKA_GGUF_DIR/bin/init.sh\""
     } >> "$BASHRC"
 else
     echo "Warning: existing suzuka-gguf configuration found in $BASHRC." >&2
@@ -23,6 +25,8 @@ fi
 echo "Configured suzuka-gguf:"
 echo "  Repository: $SUZUKA_GGUF_DIR"
 echo "  Cache:      $SUZUKA_GGUF_DIR/models"
+
 echo
+
 echo "Run:"
 echo "  source ~/.bashrc"

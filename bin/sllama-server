@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+MODEL="${1:?Usage: sllama-server <model> [llama-server options...]}"
+shift
+
+exec llama-server \
+    -m "$(suzuka-gguf path "$MODEL")" \
+    "$@"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-_suzuka_gguf_commands=(
+_suzuka_commands=(
     call
     info
     list
@@ -10,7 +10,7 @@ _suzuka_gguf_commands=(
 )
 
 
-_suzuka_gguf_dir() {
+_suzuka_dir() {
     if [[ -n "${SUZUKA_GGUF_DIR:-}" ]]; then
         printf '%s\n' "$SUZUKA_GGUF_DIR"
         return
@@ -25,7 +25,7 @@ _suzuka_gguf_dir() {
 }
 
 
-_suzuka_gguf_cache_args() {
+_suzuka_cache_args() {
     local i
 
     for ((i = 1; i < ${#COMP_WORDS[@]}; i++)); do
@@ -37,17 +37,17 @@ _suzuka_gguf_cache_args() {
 }
 
 
-_suzuka_gguf_candidates() {
+_suzuka_candidates() {
     local kind="$1"
     local dir
     local cache_args=()
 
-    dir="$(_suzuka_gguf_dir)"
+    dir="$(_suzuka_dir)"
     [[ -n "$dir" && -f "$dir/suzuka_gguf/completion.py" ]] || return 0
 
     while IFS= read -r arg; do
         cache_args+=("$arg")
-    done < <(_suzuka_gguf_cache_args)
+    done < <(_suzuka_cache_args)
 
     PYTHONPATH="$dir" \
         python3 -m suzuka_gguf.completion \
@@ -55,7 +55,7 @@ _suzuka_gguf_candidates() {
 }
 
 
-_suzuka_gguf_completion() {
+_suzuka_completion() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local command="${COMP_WORDS[1]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -63,17 +63,31 @@ _suzuka_gguf_completion() {
 
     COMPREPLY=()
 
+    # sllama-server <model>
+    if [[ "${COMP_WORDS[0]}" == "sllama-server" ]]; then
+        if (( COMP_CWORD == 1 )); then
+            candidates="$(_suzuka_candidates models)"
+
+            COMPREPLY=(
+                $(compgen -W "$candidates" -- "$cur")
+            )
+            return 0
+        fi
+
+        return 0
+    fi
+
     # command completion
     if (( COMP_CWORD == 1 )); then
         COMPREPLY=(
-            $(compgen -W "${_suzuka_gguf_commands[*]}" -- "$cur")
+            $(compgen -W "${_suzuka_commands[*]}" -- "$cur")
         )
         return 0
     fi
 
     # --repo value completion
     if [[ "$prev" == "--repo" ]]; then
-        candidates="$(_suzuka_gguf_candidates repos)"
+        candidates="$(_suzuka_candidates repos)"
 
         COMPREPLY=(
             $(compgen -W "$candidates" -- "$cur")
@@ -83,9 +97,8 @@ _suzuka_gguf_completion() {
 
     case "$command" in
         path)
-            # path <file>
             if (( COMP_CWORD == 2 )); then
-                candidates="$(_suzuka_gguf_candidates models)"
+                candidates="$(_suzuka_candidates models)"
 
                 COMPREPLY=(
                     $(compgen -W "$candidates" -- "$cur")
@@ -95,9 +108,8 @@ _suzuka_gguf_completion() {
             ;;
 
         info|remove)
-            # info/remove <repo>
             if (( COMP_CWORD == 2 )); then
-                candidates="$(_suzuka_gguf_candidates repos)"
+                candidates="$(_suzuka_candidates repos)"
 
                 COMPREPLY=(
                     $(compgen -W "$candidates" -- "$cur")
@@ -109,4 +121,4 @@ _suzuka_gguf_completion() {
 }
 
 
-complete -F _suzuka_gguf_completion suzuka-gguf
+complete -F _suzuka_completion suzuka-gguf sllama-server
