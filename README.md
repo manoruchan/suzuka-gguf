@@ -3,6 +3,7 @@
 A small GGUF manager for llama.cpp.
 
 `suzuka-gguf` downloads GGUF models from Hugging Face, keeps them in a local cache, and helps you inspect and resolve cached models.
+Shell autocompletion is also provided.
 
 ## Requirements
 
@@ -32,11 +33,11 @@ cd suzuka-gguf
 Run the setup script:
 
 ```bash
-bash setup_suzuka_gguf.sh
+bash bin/setup.sh
 source ~/.bashrc
 ```
 
-The setup registers `init_suzuka_gguf.sh` in `.bashrc`. When sourced, `init_suzuka_gguf.sh`:
+The setup registers `bin/init.sh` in `.bashrc`. When sourced, `bin/init.sh`:
 
 * adds `bin/` to `$PATH`
 * creates the default model cache if necessary
@@ -93,6 +94,8 @@ suzuka-gguf pull <user>/<model>[:<quantize>]
 suzuka-gguf remove <user>/<model>
 
 suzuka-gguf call "your prompt"
+
+sllama-server <model> [llama-server options...]
 ```
 
 ## Listing Cached Models
@@ -250,6 +253,18 @@ suzuka-gguf call "Explain what a GGUF file is."
 
 Sends the prompt to a running local `llama-server` OpenAI-compatible API and streams the response.
 
+## Running llama-server
+
+`sllama-server` resolves a cached GGUF model through `suzuka-gguf` and passes the resolved path to `llama-server`.
+
+```bash
+sllama-server Qwen3-Coder-30B-A3B-Instruct-IQ4_XS.gguf \
+    --threads 8 \
+    --ctx-size 32768
+```
+
+Additional arguments are passed directly to `llama-server`.
+
 ## Typical Workflow
 
 `suzuka-gguf` is primarily intended to manage a local GGUF cache and resolve models for whichever llama.cpp build you want to use.
@@ -278,16 +293,16 @@ llama-cli -m "$(suzuka-gguf path <file>)"
                      Hugging Face
                           │
                           ▼
-                      llama-cli
+                     llama-cli
                           │
                           ▼
                     suzuka-gguf
                           │
              ┌────────────┼────────────┐
              ▼            ▼            ▼
-           cache        inspect      resolve
+           cache       inspect      resolve
              │            │            │
-             │           list         path
+             │          list          path
              │                         │
              │                         │
              │                         │
