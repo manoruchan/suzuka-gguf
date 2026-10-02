@@ -16,14 +16,36 @@ def register_parser(subparsers: argparse._SubParsersAction) -> None:
         "target",
         help="<user>/<model> or <user>/<model>:<quantize>",
     )
-    parser.add_argument("--no-mmproj", action="store_true")
+    parser.add_argument(
+        "--file",
+        metavar="FILE",
+        help="explicit Hugging Face model file",
+    )
+    parser.add_argument(
+        "--no-mmproj",
+        action="store_true",
+        help="do not download mmproj automatically",
+    )
     parser.set_defaults(func=execute)
 
 
 def execute(args: argparse.Namespace) -> int:
     command = ["llama-cli"]
 
-    if ":" in args.target:
+    if ":" in args.target and args.file:
+        raise SystemExit(
+            "error: --file cannot be used with a quantization target "
+            "(<user>/<model>:<quantize>)"
+        )
+
+    if args.file:
+        command += [
+            "--hf-repo",
+            args.target,
+            "--hf-file",
+            args.file,
+        ]
+    elif ":" in args.target:
         command += ["-hf", args.target]
     else:
         command += ["--hf-repo", args.target]

@@ -12,6 +12,7 @@ def human_size(n: int) -> str:
 
     return f"{n} B"
 
+
 def directory_size(path: Path) -> int:
     total = 0
 
@@ -26,3 +27,15 @@ def directory_size(path: Path) -> int:
             pass
 
     return total
+
+
+def cli_filename(filename: str) -> str:
+    if filename.endswith(".gguf"):
+        return filename[:-5]
+    return filename
+
+
+def normalize_model_filename(filename: str) -> str:
+    if not filename.endswith(".gguf"):
+        return filename + ".gguf"
+    return filename

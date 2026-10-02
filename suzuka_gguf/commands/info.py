@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from suzuka_gguf.components.cache import Cache
+from suzuka_gguf.components.cache import latest_snapshot
 from suzuka_gguf.components.path_resolver import PathResolver
 from suzuka_gguf.components.utils import human_size, directory_size
 
@@ -25,7 +25,7 @@ def execute(args: argparse.Namespace) -> int:
         print(f"Not cached: {args.repo}", file=sys.stderr)
         return 1
 
-    info = Cache.latest_snapshot(repo_dir)
+    info = latest_snapshot(repo_dir)
 
     print(f"Repository : {args.repo}")
     print(f"Cache path : {repo_dir}")

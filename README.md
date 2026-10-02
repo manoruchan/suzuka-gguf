@@ -89,7 +89,7 @@ suzuka-gguf info <user>/<model>
 suzuka-gguf path <file>
 suzuka-gguf path <file> --repo <user>/<model>
 
-suzuka-gguf pull <user>/<model>[:<quantize>]
+suzuka-gguf pull <user>/<model>[:<quantize>] [--file <file>]
 
 suzuka-gguf remove <user>/<model>
 
@@ -227,6 +227,12 @@ Or download a specific quantization:
 
 ```bash
 suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf:TQ1_0
+```
+
+To download a specific file from a repository:
+
+```bash
+suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf --file Ternary-Bonsai-2-27B-PTQ1_0.gguf
 ```
 
 The download is performed through `llama-cli`, with its `LLAMA_CACHE` directed to `suzuka-gguf`'s cache.

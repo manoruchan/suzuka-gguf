@@ -6,9 +6,6 @@ class PathResolver:
     PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[2]
     DEFAULT_CACHE_PATH: Final[Path] = PROJECT_ROOT / "models"
 
-    def default_cache_path() -> Path:
-        return PathResolver.DEFAULT_CACHE_PATH
-
     @staticmethod
     def repo_dir(repo: str, path: Path | None = None) -> Path:
         resolved_path = (

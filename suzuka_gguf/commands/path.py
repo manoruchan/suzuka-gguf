@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from suzuka_gguf.components.cache import Cache
+from suzuka_gguf.components.cache import cached_model_file, find_cached_file
 from suzuka_gguf.components.path_resolver import PathResolver
 
 
@@ -20,7 +20,7 @@ def execute(args: argparse.Namespace) -> int:
     cache_dir = args.cache or PathResolver.DEFAULT_CACHE_PATH
 
     if args.repo is not None:
-        print(Cache.cached_model_file(cache_dir, args.repo, args.file))
+        print(cached_model_file(cache_dir, args.repo, args.file))
     else:
-        print(Cache.find_cached_file(cache_dir, args.file))
+        print(find_cached_file(cache_dir, args.file))
     return 0

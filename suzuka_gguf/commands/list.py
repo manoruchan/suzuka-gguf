@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from suzuka_gguf.components.cache import Cache
+from suzuka_gguf.components.cache import latest_snapshot, snapshot_files, get_cached_repositories
 from suzuka_gguf.components.path_resolver import PathResolver
 from suzuka_gguf.components.utils import human_size
 
@@ -45,14 +45,14 @@ def show_repository(cache_dir: Path, repo: str) -> int:
         print(f"Not cached: {repo}")
         return 1
 
-    info = Cache.latest_snapshot(repo_dir)
+    info = latest_snapshot(repo_dir)
 
     if not info:
         print("No snapshot found.")
         return 1
 
     _, snapshot = info
-    files = Cache.snapshot_files(snapshot)
+    files = snapshot_files(snapshot)
 
     if not files:
         print("No files found.")
@@ -73,14 +73,14 @@ def show_cached_files(cache_dir: Path) -> int:
     print(f"Cache: {cache_dir}")
     print()
 
-    repos = Cache.get_cached_repositories(cache_dir)
+    repos = get_cached_repositories(cache_dir)
 
     if not repos:
         print("No cached repositories.")
         return 0
 
     for repo, repo_dir in repos:
-        info = Cache.latest_snapshot(repo_dir)
+        info = latest_snapshot(repo_dir)
 
         if not info:
             print(repo)
@@ -93,7 +93,7 @@ def show_cached_files(cache_dir: Path) -> int:
 
         model_files = [
             file
-            for file in Cache.snapshot_files(snapshot)
+            for file in snapshot_files(snapshot)
             if file.name.endswith(".gguf") and "mmproj" not in file.name
         ]
 
@@ -116,7 +116,7 @@ def show_cached_files(cache_dir: Path) -> int:
 def show_repositories(cache_dir: Path) -> int:
     print(f"Cache: {cache_dir}")
 
-    repos = Cache.get_cached_repositories(cache_dir)
+    repos = get_cached_repositories(cache_dir)
 
     if not repos:
         print("No cached repositories.")
