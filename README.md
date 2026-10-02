@@ -8,7 +8,7 @@ Download GGUF models from Hugging Face, keep them in a local cache, and resolve 
 
 ## Features
 
-* **Tab completion** — cached model files complete for `path` and `sllama-server`, cached repositories for `info` and `remove`
+* **Tab completion** — cached model files for `path` and `sllama-server`, cached repositories for `info`, `list`, `remove` and `--repo`
 * **Minimally invasive** — one line in `.bashrc` that adds `bin/` to `$PATH`; no shims, no global state
 * **Build-agnostic** — only resolves paths, so it works with any llama.cpp build or fork
 * **Built-in help** — `suzuka-gguf --help` (and `suzuka-gguf <command> --help`)

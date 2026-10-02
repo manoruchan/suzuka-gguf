@@ -107,7 +107,7 @@ _suzuka_completion() {
             fi
             ;;
 
-        info|remove)
+        info|remove|list)
             if (( COMP_CWORD == 2 )); then
                 candidates="$(_suzuka_candidates repos)"
 
