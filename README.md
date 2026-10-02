@@ -3,6 +3,7 @@
 A small GGUF manager for llama.cpp.
 
 `suzuka-gguf` downloads GGUF models from Hugging Face, keeps them in a local cache, and helps you inspect and resolve cached models.
+
 Shell autocompletion is also provided.
 
 ## Requirements
@@ -37,8 +38,9 @@ bash bin/setup.sh
 source ~/.bashrc
 ```
 
-The setup registers `bin/init.sh` in `.bashrc`. When sourced, `bin/init.sh`:
+The setup registers `bin/init.sh` in `.bashrc`.
 
+When sourced, `bin/init.sh`:
 * adds `bin/` to `$PATH`
 * creates the default model cache if necessary
 
@@ -183,7 +185,7 @@ Shows metadata for a cached repository.
 When the filename is unique across the cache, the repository does not need to be specified:
 
 ```bash
-suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0.gguf
+suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0
 ```
 
 Output:
@@ -195,24 +197,19 @@ Output:
 If the same filename exists in multiple repositories, specify the repository explicitly:
 
 ```bash
-suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0.gguf \
-    --repo prism-ml/Ternary-Bonsai-2-27B-gguf
+suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0 --repo prism-ml/Ternary-Bonsai-2-27B-gguf
 ```
 
 The returned path can be passed directly to any llama.cpp build:
 
 ```bash
-llama-cli \
-    -m "$(suzuka-gguf path gemma-4-E4B-it-Q4_0.gguf)" \
-    -p "こんにちは！"
+llama-cli -m "$(suzuka-gguf path gemma-4-E4B-it-Q4_0)"
 ```
 
 `suzuka-gguf` does not need a build with support for a given model — it only resolves the file path. For example, a Ternary-quantized model that requires a llama.cpp fork can be resolved the same way and handed to that fork directly:
 
 ```bash
-~/prism-llama.cpp/build/bin/llama-cli \
-    -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0.gguf)" \
-    -p "こんにちは！"
+~/prism-llama.cpp/build/bin/llama-cli -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0)" 
 ```
 
 ## Pulling Models
@@ -264,9 +261,7 @@ Sends the prompt to a running local `llama-server` OpenAI-compatible API and str
 `sllama-server` resolves a cached GGUF model through `suzuka-gguf` and passes the resolved path to `llama-server`.
 
 ```bash
-sllama-server Qwen3-Coder-30B-A3B-Instruct-IQ4_XS.gguf \
-    --threads 8 \
-    --ctx-size 32768
+sllama-server Qwen3-Coder-30B-A3B-Instruct-IQ4_XS --threads 8 --ctx-size 32768
 ```
 
 Additional arguments are passed directly to `llama-server`.
