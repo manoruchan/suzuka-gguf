@@ -5,6 +5,23 @@ set -euo pipefail
 MODEL="${1:?Usage: sllama-server <model> [llama-server options...]}"
 shift
 
+ARGS=("$@")
+
+has_alias=false
+
+for arg in "${ARGS[@]}"; do
+    case "$arg" in
+        -a|--alias|--alias=*)
+            has_alias=true
+            break
+            ;;
+    esac
+done
+
+if [[ "$has_alias" == false ]]; then
+    ARGS+=("-a" "$MODEL")
+fi
+
 exec llama-server \
     -m "$(suzuka-gguf path "$MODEL")" \
-    "$@"
+    "${ARGS[@]}"
