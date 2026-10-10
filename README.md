@@ -58,7 +58,7 @@ Run `suzuka-gguf --help` for the full list of commands and options.
 | `suzuka-gguf info <user>/<model>` | Show metadata of a cached repository |
 | `suzuka-gguf path <file> [--repo <user>/<model>]` | Resolve a cached file to its real path |
 | `suzuka-gguf pull <user>/<model>[:<quantize>] [--file <file>] [--no-mmproj]` | Download a model |
-| `suzuka-gguf remove <user>/<model> [-y]` | Delete a cached repository |
+| `suzuka-gguf remove <user>/<model> [--file <file>] [-y]` | Delete a cached repository or one GGUF file |
 | `suzuka-gguf call "prompt" [--host <host>] [--port <port>]` | Send a prompt to a running `llama-server` |
 | `sllama-server <model> [options...]` | Start `llama-server` with a cached model |
 
@@ -184,14 +184,22 @@ llama-cli -m "$(suzuka-gguf path gemma-4-E4B-it-Q4_0)"
 ### Remove
 
 ```bash
+# Remove the entire cached repository
 suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF
 
+# Remove one GGUF file from a repository
+suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF \
+    --file gemma-4-26B-A4B-it-UD-IQ3_S.gguf
+
 # Skip the confirmation prompt
-suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF -y
+suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF \
+    --file gemma-4-26B-A4B-it-UD-IQ3_S.gguf -y
 ```
 
+`remove --file` removes that GGUF file from every cached revision of the repository. Its backing blob is deleted only when no remaining snapshot references it. Other GGUF files, including `mmproj` files, are left untouched unless named explicitly.
+
 > [!WARNING]
-> `remove` deletes the **entire cached repository**, including all downloaded GGUF files. Removing a single file is not supported, and this cannot be undone.
+> Repository removal deletes the **entire cached repository** and cannot be undone. Avoid removing a GGUF while a model using it is loading or running. `pull` and `remove` serialize operations for the same repository when both are run through `suzuka-gguf`; direct `llama-cli` downloads and external model processes do not participate in that lock.
 
 ### Run llama-server
 
@@ -230,10 +238,11 @@ The cache follows the Hugging Face hub layout:
 ```text
 models/
 └── models--<user>--<model>/
+    ├── blobs/
     ├── refs/
     └── snapshots/
         └── <revision>/
-            └── <files>
+            └── <files> → ../../blobs/<hash>
 ```
 
 </details>

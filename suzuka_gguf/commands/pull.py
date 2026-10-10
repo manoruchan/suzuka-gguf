@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
+from pathlib import Path
 
+from suzuka_gguf.components.cache_lock import repository_lock
 from suzuka_gguf.components.path_resolver import PathResolver
 
 
@@ -53,20 +55,27 @@ def execute(args: argparse.Namespace) -> int:
     if args.no_mmproj:
         command.append("--no-mmproj")
 
+    repo = args.target.split(":", 1)[0]
+    cache_dir = (
+        Path(args.cache)
+        if args.cache
+        else PathResolver.DEFAULT_CACHE_PATH
+    )
+    PathResolver.repo_dir(repo, cache_dir)
+
     print("+", " ".join(command))
     print("Note: llama-cli downloads and then exits.")
 
     env = os.environ.copy()
-    env["LLAMA_CACHE"] = str(
-        args.cache or PathResolver.DEFAULT_CACHE_PATH
-    )
+    env["LLAMA_CACHE"] = str(cache_dir)
 
-    process = subprocess.Popen(
-        command,
-        stdin=subprocess.PIPE,
-        env=env,
-    )
+    with repository_lock(cache_dir, repo):
+        process = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            env=env,
+        )
 
-    process.communicate(b"/exit\n")
+        process.communicate(b"/exit\n")
 
     return process.returncode

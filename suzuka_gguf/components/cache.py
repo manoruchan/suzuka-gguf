@@ -81,6 +81,102 @@ def snapshot_files(snapshot: Path) -> list[Path]:
     )
 
 
+def validate_gguf_filename(filename: str) -> Path:
+    path = Path(filename)
+
+    if (
+        not filename
+        or "\x00" in filename
+        or path.is_absolute()
+        or ".." in path.parts
+        or not path.name.endswith(".gguf")
+    ):
+        raise ValueError(f"invalid GGUF file path: {filename!r}")
+
+    return path
+
+
+def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
+    """Remove a GGUF file from every snapshot and collect unused blobs."""
+    relative_path = validate_gguf_filename(filename)
+    snapshots_dir = repo_dir / "snapshots"
+
+    if repo_dir.is_symlink() or snapshots_dir.is_symlink():
+        raise ValueError(
+            f"refusing to remove a GGUF through a symbolic-link directory: {repo_dir}"
+        )
+
+    if not snapshots_dir.is_dir():
+        return False
+
+    snapshots = [
+        path
+        for path in snapshots_dir.iterdir()
+        if path.is_dir() and not path.is_symlink()
+    ]
+    matches = []
+
+    for snapshot in snapshots:
+        parent = snapshot
+
+        for part in relative_path.parts[:-1]:
+            parent = parent / part
+            if parent.is_symlink():
+                raise ValueError(
+                    "GGUF path cannot traverse a symbolic-link directory: "
+                    f"{filename!r}"
+                )
+
+        candidate = snapshot / relative_path
+        if candidate.is_symlink() or candidate.is_file():
+            matches.append(candidate)
+
+    if not matches:
+        return False
+
+    blobs_dir = repo_dir / "blobs"
+    blob_targets = set()
+
+    if not blobs_dir.is_symlink():
+        blobs_root = blobs_dir.resolve(strict=False)
+
+        for path in matches:
+            if not path.is_symlink():
+                continue
+
+            try:
+                target = path.resolve(strict=False)
+            except (OSError, RuntimeError):
+                continue
+
+            if target.is_relative_to(blobs_root):
+                blob_targets.add(target)
+
+    for path in matches:
+        path.unlink()
+
+    for blob in blob_targets:
+        if blob.is_file() and not _snapshot_references_blob(snapshots, blob):
+            blob.unlink()
+
+    return True
+
+
+def _snapshot_references_blob(snapshots: list[Path], blob: Path) -> bool:
+    for snapshot in snapshots:
+        for path in snapshot.rglob("*"):
+            if not path.is_symlink():
+                continue
+
+            try:
+                if path.resolve(strict=False) == blob:
+                    return True
+            except (OSError, RuntimeError):
+                continue
+
+    return False
+
+
 def cached_model_file(
     cache_dir: Path,
     repo: str,

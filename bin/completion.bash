@@ -39,8 +39,10 @@ _suzuka_cache_args() {
 
 _suzuka_candidates() {
     local kind="$1"
+    local repo="${2:-}"
     local dir
     local cache_args=()
+    local completion_args=("$kind")
 
     dir="$(_suzuka_dir)"
     [[ -n "$dir" && -f "$dir/suzuka_gguf/completion.py" ]] || return 0
@@ -49,9 +51,13 @@ _suzuka_candidates() {
         cache_args+=("$arg")
     done < <(_suzuka_cache_args)
 
+    if [[ -n "$repo" ]]; then
+        completion_args+=(--repo "$repo")
+    fi
+
     PYTHONPATH="$dir" \
         python3 -m suzuka_gguf.completion \
-        "$kind" "${cache_args[@]}" 2>/dev/null
+        "${completion_args[@]}" "${cache_args[@]}" 2>/dev/null
 }
 
 
@@ -81,6 +87,20 @@ _suzuka_completion() {
     if (( COMP_CWORD == 1 )); then
         COMPREPLY=(
             $(compgen -W "${_suzuka_commands[*]}" -- "$cur")
+        )
+        return 0
+    fi
+
+    # GGUF filename completion
+    if [[ "$prev" == "--file" ]]; then
+        if [[ "$command" == "remove" && -n "${COMP_WORDS[2]:-}" ]]; then
+            candidates="$(_suzuka_candidates gguf-files "${COMP_WORDS[2]}")"
+        else
+            candidates="$(_suzuka_candidates gguf-files)"
+        fi
+
+        COMPREPLY=(
+            $(compgen -W "$candidates" -- "$cur")
         )
         return 0
     fi
