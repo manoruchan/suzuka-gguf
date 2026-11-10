@@ -8,7 +8,7 @@ Download GGUF models from Hugging Face, keep them in a local cache, and resolve 
 
 ## Features
 
-* **Tab completion** — cached model files for `path` and `sllama-server`, cached repositories for `info`, `list`, `remove` and `--repo`
+* **Tab completion** — cached files for `path` and `--file`, cached repositories for `info`, `list`, `remove` and `--repo`, narrowed down by the repository already given on the line
 * **Minimally invasive** — one line in `.bashrc` that adds `bin/` to `$PATH`; no shims, no global state
 * **Build-agnostic** — only resolves paths, so it works with any llama.cpp build or fork
 * **Built-in help** — `suzuka-gguf --help` (and `suzuka-gguf <command> --help`)
@@ -60,7 +60,6 @@ Run `suzuka-gguf --help` for the full list of commands and options.
 | `suzuka-gguf pull <user>/<model>[:<quantize>] [--file <file>] [--no-mmproj]` | Download a model |
 | `suzuka-gguf remove <user>/<model> [--file <file>] [-y]` | Delete a cached repository or one GGUF file |
 | `suzuka-gguf call "prompt" [--host <host>] [--port <port>]` | Send a prompt to a running `llama-server` |
-| `sllama-server <model> [options...]` | Start `llama-server` with a cached model |
 
 ## Usage
 
@@ -205,10 +204,11 @@ suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF \
 
 ### Run llama-server
 
-`sllama-server` resolves a cached model through `suzuka-gguf` and passes the path to `llama-server`. Extra arguments are forwarded as-is.
+Resolve the path and start `llama-server` with your own build:
 
 ```bash
-sllama-server Qwen3-Coder-30B-A3B-Instruct-IQ4_XS --threads 8 --ctx-size 32768
+llama-server -m "$(suzuka-gguf path Qwen3-Coder-30B-A3B-Instruct-IQ4_XS)" \
+    --threads 8 --ctx-size 32768
 ```
 
 ### Call
@@ -221,6 +221,21 @@ suzuka-gguf call "Hello" --host 192.168.1.10 --port 8081
 ```
 
 Sends the prompt to a running `llama-server` (OpenAI-compatible API) and streams the response. Defaults to `127.0.0.1:8080`.
+
+### Completion
+
+Completion follows the options already on the line, so the list is the
+repository you named, not the whole cache:
+
+```bash
+suzuka-gguf path --repo org/model <Tab>     # files in that repository
+suzuka-gguf remove org/model --file <Tab>   # files in that repository
+suzuka-gguf --cache /data/models list <Tab> # repositories in that cache
+```
+
+GGUF names are inserted without the `.gguf` suffix, the same form the
+commands accept. `--cache`, `--repo` and `--file` values are completed in
+both the `--opt value` and `--opt=value` forms.
 
 ## Cache
 
