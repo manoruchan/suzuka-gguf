@@ -13,7 +13,7 @@ _suzuka_commands=(
 # Directory that holds this file (bin/), used when init.sh did not export
 # SUZUKA_GGUF_DIR (e.g. completion.bash sourced on its own).
 _suzuka_own_dir() {
-    cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd
+    cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd -P
 }
 
 
@@ -27,7 +27,7 @@ _suzuka_dir() {
     command_path="$(command -v suzuka-gguf 2>/dev/null || true)"
 
     if [[ -n "$command_path" ]]; then
-        cd -- "$(dirname -- "$command_path")/.." 2>/dev/null && pwd
+        cd -- "$(dirname -- "$command_path")/.." 2>/dev/null && pwd -P
         return
     fi
 
@@ -80,6 +80,17 @@ _suzuka_candidates() {
 }
 
 
+_suzuka_option_takes_value() {
+    case "$1" in
+        --cache|--repo|--file|--host|--port)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+
 # Index of the subcommand word, skipping global options and their values.
 _suzuka_command_index() {
     local i=1
@@ -106,6 +117,32 @@ _suzuka_command_index() {
 }
 
 
+# Positional words of the subcommand that precede the word being completed.
+_suzuka_positionals() {
+    local index="$1"
+    local i=$((index + 1))
+
+    while ((i < COMP_CWORD)); do
+        case "${COMP_WORDS[i]}" in
+            --*=*)
+                i=$((i + 1))
+                ;;
+            -*)
+                if _suzuka_option_takes_value "${COMP_WORDS[i]}"; then
+                    i=$((i + 2))
+                else
+                    i=$((i + 1))
+                fi
+                ;;
+            *)
+                printf '%s\n' "${COMP_WORDS[i]}"
+                i=$((i + 1))
+                ;;
+        esac
+    done
+}
+
+
 # Value of --repo if it already appears on the line.
 _suzuka_repo_value() {
     local i
@@ -127,29 +164,15 @@ _suzuka_repo_value() {
 }
 
 
-# Repository passed positionally, e.g. `remove <repo> --file`.
-_suzuka_positional_repo() {
-    local index="$1"
-    local repo="${COMP_WORDS[index + 1]:-}"
-
-    if [[ -n "$repo" && "$repo" != -* && $((index + 1)) -lt $COMP_CWORD ]]; then
-        printf '%s\n' "$repo"
-    fi
-}
-
-
 _suzuka_flags() {
     case "$1" in
         call)   printf '%s\n' --host --port ;;
-        info)   printf '%s\n' ;;
+        info)   ;;
         list)   printf '%s\n' --minimal ;;
         path)   printf '%s\n' --repo ;;
         pull)   printf '%s\n' --file --no-mmproj ;;
         remove) printf '%s\n' --file -y --yes ;;
-        *)      ;;
     esac
-
-    printf '%s\n' --cache
 }
 
 
@@ -211,44 +234,21 @@ _suzuka_reply_dirs() {
 }
 
 
-_suzuka_cached_files() {
-    local command="$1"
-    local index="$2"
-    local repo
-
-    case "$command" in
-        pull)
-            # --file here names a file inside the Hugging Face repository;
-            # the local cache has nothing useful to offer.
-            return 0
-            ;;
-    esac
-
-    repo="$(_suzuka_repo_value || _suzuka_positional_repo "$index")"
-    _suzuka_candidates gguf-files "$repo"
-}
-
-
 _suzuka_completion() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
-    local index command
+    local index command repo=""
+    local positional=()
+    local word
 
     COMPREPLY=()
-
-    # sllama-server <model>
-    if [[ "${COMP_WORDS[0]}" == "sllama-server" ]]; then
-        if ((COMP_CWORD == 1)); then
-            _suzuka_reply "$cur" "$(_suzuka_candidates models)"
-        fi
-        return 0
-    fi
 
     # global --cache value
     if [[ "$prev" == "--cache" ]]; then
         _suzuka_reply_dirs "$cur"
         return 0
     fi
+
     if [[ "$cur" == --cache=* ]]; then
         _suzuka_reply_prefixed "--cache=" "${cur#--cache=}" \
             "$(compgen -d -- "${cur#--cache=}" 2>/dev/null | sed 's:$:/:')"
@@ -269,6 +269,24 @@ _suzuka_completion() {
 
     command="${COMP_WORDS[index]}"
 
+    while IFS= read -r word; do
+        positional+=("$word")
+    done < <(_suzuka_positionals "$index")
+
+    # `pull` names a file inside the Hugging Face repository, so the local
+    # cache has nothing to narrow it down with.
+    if [[ "$command" != "pull" ]]; then
+        repo="$(_suzuka_repo_value || true)"
+
+        if [[ -z "$repo" && ${#positional[@]} -gt 0 ]]; then
+            case "$command" in
+                info|remove|list)
+                    repo="${positional[0]}"
+                    ;;
+            esac
+        fi
+    fi
+
     # option values
     case "$prev" in
         --repo)
@@ -276,7 +294,10 @@ _suzuka_completion() {
             return 0
             ;;
         --file)
-            _suzuka_reply "$cur" "$(_suzuka_cached_files "$command" "$index")"
+            if [[ "$command" == "pull" ]]; then
+                return 0
+            fi
+            _suzuka_reply "$cur" "$(_suzuka_candidates gguf-files "$repo")"
             return 0
             ;;
     esac
@@ -288,8 +309,11 @@ _suzuka_completion() {
     fi
 
     if [[ "$cur" == --file=* ]]; then
+        if [[ "$command" == "pull" ]]; then
+            return 0
+        fi
         _suzuka_reply_prefixed "--file=" "${cur#--file=}" \
-            "$(_suzuka_cached_files "$command" "$index")"
+            "$(_suzuka_candidates gguf-files "$repo")"
         return 0
     fi
 
@@ -299,11 +323,15 @@ _suzuka_completion() {
         return 0
     fi
 
-    # positional arguments
-    if ((COMP_CWORD == index + 1)); then
+    # first positional argument
+    if ((COMP_CWORD > index && ${#positional[@]} == 0)); then
         case "$command" in
             path)
-                _suzuka_reply "$cur" "$(_suzuka_candidates models)"
+                if [[ -n "$repo" ]]; then
+                    _suzuka_reply "$cur" "$(_suzuka_candidates gguf-files "$repo")"
+                else
+                    _suzuka_reply "$cur" "$(_suzuka_candidates models)"
+                fi
                 ;;
             info|remove|list)
                 _suzuka_reply "$cur" "$(_suzuka_candidates repos)"
@@ -315,4 +343,4 @@ _suzuka_completion() {
 }
 
 
-complete -F _suzuka_completion suzuka-gguf sllama-server
+complete -F _suzuka_completion suzuka-gguf
