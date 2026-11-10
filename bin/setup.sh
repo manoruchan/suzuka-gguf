@@ -28,7 +28,7 @@ mkdir -p "$SUZUKA_GGUF_DIR/models"
 chmod +x "$SUZUKA_GGUF_DIR/bin/suzuka-gguf"
 chmod +x "$SUZUKA_GGUF_DIR/bin/init.zsh"
 
-if ! grep -Fqx "# suzuka-gguf" "$RC"; then
+if ! grep -Fqx "# suzuka-gguf" "$RC" 2>/dev/null; then
     {
         echo
         echo "# suzuka-gguf"
