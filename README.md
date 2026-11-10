@@ -29,7 +29,7 @@ llama-cli -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0)"
 ## Requirements
 
 * Linux
-* Bash
+* Bash (the init script refuses to load in any other shell, e.g. zsh)
 * Python 3
 * Network access to [Hugging Face](https://huggingface.co/)
 * llama.cpp `0.3.0` (built with Spack)
@@ -74,7 +74,7 @@ suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf
 suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf:TQ1_0
 
 # Specific file
-suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf --file Ternary-Bonsai-2-27B-PTQ1_0.gguf
+suzuka-gguf pull prism-ml/Ternary-Bonsai-2-27B-gguf --file Ternary-Bonsai-2-27B-PTQ1_0
 
 # Skip multimodal projector files
 suzuka-gguf pull <user>/<model> --no-mmproj
@@ -170,6 +170,8 @@ If the same filename exists in multiple repositories, specify the repository:
 suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0 --repo prism-ml/Ternary-Bonsai-2-27B-gguf
 ```
 
+The `.gguf` extension is optional everywhere a filename is accepted, so `--file dup` and `--file dup.gguf` are the same thing. Files inside a subdirectory keep their relative path (`extra/dup`).
+
 The result can be passed to any llama.cpp build, including forks:
 
 ```bash
@@ -189,7 +191,7 @@ suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF
 
 # Remove one GGUF file from a repository
 suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF \
-    --file gemma-4-26B-A4B-it-UD-IQ3_S.gguf
+    --file gemma-4-26B-A4B-it-UD-IQ3_S
 
 # Skip the confirmation prompt
 suzuka-gguf remove unsloth/gemma-4-26B-A4B-it-GGUF \
