@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ -z "${BASH_VERSION:-}" ]; then
-    echo "suzuka-gguf: bash is required, but this shell is not bash." >&2
-    echo "             Start bash and source it from ~/.bashrc." >&2
+    echo "suzuka-gguf: bin/init.sh must be sourced from bash." >&2
+    echo "             In zsh, source bin/init.zsh instead." >&2
     return 1 2>/dev/null || exit 1
 fi
 
