@@ -15,7 +15,6 @@ fi
 mkdir -p "$SUZUKA_GGUF_DIR/models"
 
 chmod +x "$SUZUKA_GGUF_DIR/bin/suzuka-gguf"
-chmod +x "$SUZUKA_GGUF_DIR/bin/sllama-server"
 
 if ! grep -Fqx "# suzuka-gguf" "$BASHRC"; then
     {
