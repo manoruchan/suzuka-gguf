@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from suzuka_gguf.components.path_resolver import PathResolver
