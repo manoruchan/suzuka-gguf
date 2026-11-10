@@ -34,7 +34,7 @@ def find_cached_file(cache_dir: Path, filename: str) -> Path:
         _, snapshot = info
 
         for file in snapshot_files(snapshot):
-            if file.name == filename:
+            if filename in (file.name, str(file.relative_to(snapshot))):
                 matches.append(file)
 
     if not matches:
@@ -89,11 +89,10 @@ def validate_gguf_filename(filename: str) -> Path:
         or "\x00" in filename
         or path.is_absolute()
         or ".." in path.parts
-        or not path.name.endswith(".gguf")
     ):
         raise ValueError(f"invalid GGUF file path: {filename!r}")
 
-    return path
+    return Path(normalize_model_filename(filename))
 
 
 def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
@@ -195,6 +194,7 @@ def cached_model_file(
     _, snapshot = info
 
     if filename:
+        filename = normalize_model_filename(filename)
         candidate = snapshot / filename
 
         if candidate.is_file():

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from suzuka_gguf.components.cache_lock import repository_lock
 from suzuka_gguf.components.path_resolver import PathResolver
+from suzuka_gguf.components.utils import normalize_model_filename
 
 
 def register_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -41,6 +42,7 @@ def execute(args: argparse.Namespace) -> int:
         )
 
     if args.file:
+        args.file = normalize_model_filename(args.file)
         command += [
             "--hf-repo",
             args.target,

@@ -37,7 +37,7 @@ def execute(args: argparse.Namespace) -> int:
     repo_dir = PathResolver.repo_dir(args.repo, cache_dir)
 
     if args.file is not None:
-        validate_gguf_filename(args.file)
+        args.file = str(validate_gguf_filename(args.file))
 
     if not repo_dir.is_dir():
         print(f"Not cached: {args.repo}", file=sys.stderr)
