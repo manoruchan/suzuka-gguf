@@ -8,8 +8,8 @@ Download GGUF models from Hugging Face, keep them in a local cache, and resolve 
 
 ## Features
 
-* **Tab completion** — cached files for `path` and `--file`, cached repositories for `info`, `list`, `remove` and `--repo`, narrowed down by the repository already given on the line
-* **Minimally invasive** — one line in `.bashrc` that adds `bin/` to `$PATH`; no shims, no global state
+* **Tab completion** (bash) — cached files for `path` and `--file`, cached repositories for `info`, `list`, `remove` and `--repo`, narrowed down by the repository already given on the line
+* **Minimally invasive** — one line in `.bashrc` (bash) or `.zshrc` (zsh) that adds `bin/` to `$PATH`; no shims, no global state
 * **Build-agnostic** — only resolves paths, so it works with any llama.cpp build or fork
 * **Built-in help** — `suzuka-gguf --help` (and `suzuka-gguf <command> --help`)
 
@@ -28,9 +28,9 @@ llama-cli -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0)"
 
 ## Requirements
 
-* Linux
-* Bash (the init script refuses to load in any other shell, e.g. zsh)
-* Python 3
+* Linux or macOS
+* Bash (`bin/init.sh`, plus tab completion) or zsh (`bin/init.zsh`)
+* Python 3.9 or newer
 * Network access to [Hugging Face](https://huggingface.co/)
 * llama.cpp `0.3.0` (built with Spack)
 
@@ -43,10 +43,14 @@ llama-cli -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0)"
 git clone https://github.com/manoruchan/suzuka-gguf.git
 cd suzuka-gguf
 bash bin/setup.sh
-source ~/.bashrc
+source ~/.zshrc   # zsh
+source ~/.bashrc  # bash
 ```
 
-The setup registers `bin/init.sh` in `.bashrc`. When sourced, it adds `bin/` to `$PATH`, enables completion, and creates the default model cache if necessary.
+The setup script reads `$SHELL` and registers the matching init file:
+`bin/init.zsh` in `.zshrc` for zsh, `bin/init.sh` in `.bashrc` for bash.
+When sourced, it adds `bin/` to `$PATH`, enables completion (bash only),
+and creates the default model cache if necessary.
 
 ## Commands
 
@@ -236,6 +240,10 @@ suzuka-gguf --cache /data/models list <Tab> # repositories in that cache
 GGUF names are inserted without the `.gguf` suffix, the same form the
 commands accept. `--cache`, `--repo` and `--file` values are completed in
 both the `--opt value` and `--opt=value` forms.
+
+Completion is implemented in `bin/completion.bash` and therefore bash
+only. zsh gets the commands, the cache path and the environment variables
+from `bin/init.zsh`, but no tab completion.
 
 ## Cache
 
