@@ -8,7 +8,7 @@ Download GGUF models from Hugging Face, keep them in a local cache, and resolve 
 
 ## Features
 
-* **Tab completion** (bash) — cached files for `path` and `--file`, cached repositories for `info`, `list`, `remove` and `--repo`, narrowed down by the repository already given on the line
+* **Tab completion** (bash and zsh) — cached files for `path` and `--file`, cached repositories for `info`, `list`, `remove` and `--repo`, narrowed down by the repository already given on the line
 * **Minimally invasive** — one line in `.bashrc` (bash) or `.zshrc` (zsh) that adds `bin/` to `$PATH`; no shims, no global state
 * **Build-agnostic** — only resolves paths, so it works with any llama.cpp build or fork
 * **Built-in help** — `suzuka-gguf --help` (and `suzuka-gguf <command> --help`)
@@ -29,7 +29,7 @@ llama-cli -m "$(suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0)"
 ## Requirements
 
 * Linux or macOS
-* Bash (`bin/init.sh`, plus tab completion) or zsh (`bin/init.zsh`)
+* Bash (`bin/init.sh`) or zsh (`bin/init.zsh`), both with tab completion
 * Python 3.9 or newer
 * Network access to [Hugging Face](https://huggingface.co/)
 * llama.cpp `0.3.0` (built with Spack)
@@ -241,9 +241,13 @@ GGUF names are inserted without the `.gguf` suffix, the same form the
 commands accept. `--cache`, `--repo` and `--file` values are completed in
 both the `--opt value` and `--opt=value` forms.
 
-Completion is implemented in `bin/completion.bash` and therefore bash
-only. zsh gets the commands, the cache path and the environment variables
-from `bin/init.zsh`, but no tab completion.
+Both shells complete `--cache` (directories), `--repo` (cached
+repositories), `--file` (cached GGUF files, scoped to the repository on
+the line) and the first positional argument.
+
+The bash completion is `bin/completion.bash`; the zsh one is
+`bin/completion.zsh`, which needs `compinit` (it registers itself with
+`compdef` and groups the candidates by kind).
 
 ## Cache
 

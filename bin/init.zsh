@@ -21,6 +21,10 @@ SUZUKA_GGUF_CACHE="$SUZUKA_GGUF_DIR/models"
 
 mkdir -p "$SUZUKA_GGUF_CACHE"
 
+if [[ -o interactive ]]; then
+    source "$SUZUKA_GGUF_COMMAND_DIR/completion.zsh"
+fi
+
 case ":$PATH:" in
     *":$SUZUKA_GGUF_COMMAND_DIR:"*)
         ;;
