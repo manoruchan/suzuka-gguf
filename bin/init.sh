@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -z "${BASH_VERSION:-}" ]; then
+    echo "suzuka-gguf: bash is required, but this shell is not bash." >&2
+    echo "             Start bash and source it from ~/.bashrc." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 SUZUKA_GGUF_COMMAND_DIR="$SUZUKA_GGUF_DIR/bin"
 SUZUKA_GGUF_CACHE="$SUZUKA_GGUF_DIR/models"
 

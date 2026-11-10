@@ -2,9 +2,15 @@
 
 set -euo pipefail
 
-SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+SUZUKA_GGUF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 
 BASHRC="$HOME/.bashrc"
+
+if [ -n "${SHELL:-}" ] && [ "${SHELL##*/}" != "bash" ]; then
+    echo "Warning: your shell is ${SHELL##*/}, but suzuka-gguf requires bash" >&2
+    echo "         and only registers itself in $BASHRC." >&2
+    echo "         Start bash (or change your login shell) to use it." >&2
+fi
 
 mkdir -p "$SUZUKA_GGUF_DIR/models"
 
