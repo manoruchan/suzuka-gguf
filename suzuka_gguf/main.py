@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import argparse
+from pathlib import Path
 
 from suzuka_gguf import commands
 
@@ -21,7 +22,11 @@ def main() -> int:
         description="A simple GGUF manager for llama.cpp.",
     )
 
-    parser.add_argument("--cache", help="cache dir")
+    parser.add_argument(
+        "--cache",
+        type=Path,
+        help="cache dir",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
