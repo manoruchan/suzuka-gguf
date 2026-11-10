@@ -24,7 +24,7 @@ def model_files(cache_dir: Path) -> list[str]:
 
         for file in snapshot_files(snapshot):
             if file.name.endswith(".gguf") and "mmproj" not in file.name:
-                files.add(cli_filename(file.name))
+                files.add(cli_filename(str(file.relative_to(snapshot))))
 
     return sorted(files)
 
@@ -53,7 +53,7 @@ def gguf_files(cache_dir: Path, repo: str | None = None) -> list[str]:
 
             for file in snapshot_files(snapshot):
                 if file.name.endswith(".gguf"):
-                    files.add(str(file.relative_to(snapshot)))
+                    files.add(cli_filename(str(file.relative_to(snapshot))))
 
     return sorted(files)
 
