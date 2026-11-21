@@ -3,9 +3,14 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from suzuka_gguf.components.cache_lock import repository_lock
+from suzuka_gguf.components.hf import (
+    match_repository_file,
+    repository_files,
+)
 from suzuka_gguf.components.path_resolver import PathResolver
 from suzuka_gguf.components.utils import normalize_model_filename
 
@@ -22,7 +27,10 @@ def register_parser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--file",
         metavar="FILE",
-        help="explicit Hugging Face model file",
+        help=(
+            "file in the repository; used as given, "
+            "extension completed when it matches no file"
+        ),
     )
     parser.add_argument(
         "--no-mmproj",
@@ -30,6 +38,19 @@ def register_parser(subparsers: argparse._SubParsersAction) -> None:
         help="do not download mmproj automatically",
     )
     parser.set_defaults(func=execute)
+
+
+def resolve_file(repo: str, filename: str) -> str:
+    try:
+        files = repository_files(repo)
+    except RuntimeError as exc:
+        print(
+            f"Note: {exc}; using {filename!r} as given.",
+            file=sys.stderr,
+        )
+        return normalize_model_filename(filename)
+
+    return match_repository_file(files, filename)
 
 
 def execute(args: argparse.Namespace) -> int:
@@ -41,11 +62,13 @@ def execute(args: argparse.Namespace) -> int:
             "(<user>/<model>:<quantize>)"
         )
 
+    repo = args.target.split(":", 1)[0]
+
     if args.file:
-        args.file = normalize_model_filename(args.file)
+        args.file = resolve_file(repo, args.file)
         command += [
             "--hf-repo",
-            args.target,
+            repo,
             "--hf-file",
             args.file,
         ]
@@ -57,7 +80,6 @@ def execute(args: argparse.Namespace) -> int:
     if args.no_mmproj:
         command.append("--no-mmproj")
 
-    repo = args.target.split(":", 1)[0]
     cache_dir = (
         Path(args.cache)
         if args.cache

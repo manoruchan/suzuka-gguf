@@ -62,10 +62,13 @@ def execute(args: argparse.Namespace) -> int:
             return 1
 
         if args.file:
-            if not remove_cached_gguf(repo_dir, args.file):
+            removed = remove_cached_gguf(repo_dir, args.file)
+
+            if removed is None:
                 print(f"Not cached: {target}", file=sys.stderr)
                 return 1
-            print(f"Removed: {target}")
+
+            print(f"Removed: {args.repo}/{removed}")
         else:
             shutil.rmtree(repo_dir)
             print(f"Removed: {args.repo}")

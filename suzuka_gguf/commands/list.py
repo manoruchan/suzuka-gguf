@@ -5,7 +5,7 @@ from pathlib import Path
 
 from suzuka_gguf.components.cache import latest_snapshot, snapshot_files, get_cached_repositories
 from suzuka_gguf.components.path_resolver import PathResolver
-from suzuka_gguf.components.utils import human_size
+from suzuka_gguf.components.utils import human_size, is_gguf_filename
 
 
 def register_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -94,7 +94,7 @@ def show_cached_files(cache_dir: Path) -> int:
         model_files = [
             file
             for file in snapshot_files(snapshot)
-            if file.name.endswith(".gguf") and "mmproj" not in file.name
+            if is_gguf_filename(file.name) and "mmproj" not in file.name
         ]
 
         if not model_files:

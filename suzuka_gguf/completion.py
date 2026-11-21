@@ -9,7 +9,7 @@ from suzuka_gguf.components.cache import (
     snapshot_files,
 )
 from suzuka_gguf.components.path_resolver import PathResolver
-from suzuka_gguf.components.utils import cli_filename
+from suzuka_gguf.components.utils import cli_filename, is_gguf_filename
 
 
 def model_files(cache_dir: Path) -> list[str]:
@@ -23,7 +23,7 @@ def model_files(cache_dir: Path) -> list[str]:
         _, snapshot = info
 
         for file in snapshot_files(snapshot):
-            if file.name.endswith(".gguf") and "mmproj" not in file.name:
+            if is_gguf_filename(file.name) and "mmproj" not in file.name:
                 files.add(cli_filename(str(file.relative_to(snapshot))))
 
     return sorted(files)
@@ -52,7 +52,7 @@ def gguf_files(cache_dir: Path, repo: str | None = None) -> list[str]:
                 continue
 
             for file in snapshot_files(snapshot):
-                if file.name.endswith(".gguf"):
+                if is_gguf_filename(file.name):
                     files.add(cli_filename(str(file.relative_to(snapshot))))
 
     return sorted(files)

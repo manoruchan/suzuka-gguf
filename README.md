@@ -85,6 +85,8 @@ suzuka-gguf pull <user>/<model> --no-mmproj
 
 `pull` is a thin wrapper around `llama-cli`. If you specify only a repository, the Hugging Face resolver picks a single `.gguf` to download; use `:<quantize>` or `--file` to choose explicitly.
 
+`--file` is checked against the file list of the repository before `llama-cli` runs, so the name is never guessed. A name that exists is used as it is, whatever it ends in — `Mainline_Support/Inkling-2-Mini-UD-Q4_K_M.gguf_file` is a file name, not an abbreviation of a `.gguf`. The extension is completed only when the name matches nothing, and a completed name still has to exist (`Inkling-2-Mini-UD-Q4_K_M` → `Inkling-2-Mini-UD-Q4_K_M.gguf`). An unknown name fails with the list of files instead of a download error.
+
 `LLAMA_CACHE` is set only for the `llama-cli` subprocess, so your shell is unaffected.
 
 ### List
@@ -173,7 +175,7 @@ If the same filename exists in multiple repositories, specify the repository:
 suzuka-gguf path Ternary-Bonsai-2-27B-PTQ1_0 --repo prism-ml/Ternary-Bonsai-2-27B-gguf
 ```
 
-The `.gguf` extension is optional everywhere a filename is accepted, so `--file dup` and `--file dup.gguf` are the same thing. Files inside a subdirectory keep their relative path (`extra/dup`).
+The `.gguf` extension is optional everywhere a filename is accepted, so `--file dup` and `--file dup.gguf` are the same thing. A name that already carries a GGUF variant (`dup.gguf_file`, `dup.gguf.part1of2`) is used verbatim. Files inside a subdirectory keep their relative path (`extra/dup`).
 
 The result can be passed to any llama.cpp build, including forks:
 

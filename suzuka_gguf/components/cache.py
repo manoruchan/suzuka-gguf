@@ -3,7 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from suzuka_gguf.components.path_resolver import PathResolver
-from suzuka_gguf.components.utils import normalize_model_filename
+from suzuka_gguf.components.utils import (
+    is_gguf_filename,
+    model_filename_candidates,
+)
 
 
 def get_cached_repositories(cache_dir: Path) -> list[tuple[str, Path]]:
@@ -23,7 +26,7 @@ def get_cached_repositories(cache_dir: Path) -> list[tuple[str, Path]]:
 
 
 def find_cached_file(cache_dir: Path, filename: str) -> Path:
-    filename = normalize_model_filename(filename)
+    candidates = model_filename_candidates(filename)
 
     matches = []
 
@@ -36,7 +39,9 @@ def find_cached_file(cache_dir: Path, filename: str) -> Path:
         _, snapshot = info
 
         for file in snapshot_files(snapshot):
-            if filename in (file.name, str(file.relative_to(snapshot))):
+            if file.name in candidates or str(
+                file.relative_to(snapshot)
+            ) in candidates:
                 matches.append(file)
 
     if not matches:
@@ -94,12 +99,16 @@ def validate_gguf_filename(filename: str) -> Path:
     ):
         raise ValueError(f"invalid GGUF file path: {filename!r}")
 
-    return Path(normalize_model_filename(filename))
+    return path
 
 
-def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
-    """Remove a GGUF file from every snapshot and collect unused blobs."""
+def remove_cached_gguf(repo_dir: Path, filename: str) -> str | None:
+    """Remove a GGUF file from every snapshot and collect unused blobs.
+
+    Returns the name of the removed file, or None when nothing matched.
+    """
     relative_path = validate_gguf_filename(filename)
+    candidates = model_filename_candidates(str(relative_path))
     snapshots_dir = repo_dir / "snapshots"
 
     if repo_dir.is_symlink() or snapshots_dir.is_symlink():
@@ -108,7 +117,7 @@ def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
         )
 
     if not snapshots_dir.is_dir():
-        return False
+        return None
 
     snapshots = [
         path
@@ -116,24 +125,32 @@ def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
         if path.is_dir() and not path.is_symlink()
     ]
     matches = []
+    removed_name = None
 
     for snapshot in snapshots:
-        parent = snapshot
+        found = [
+            path
+            for path in (
+                _snapshot_gguf(snapshot, Path(candidate), filename)
+                for candidate in candidates
+            )
+            if path is not None
+        ]
 
-        for part in relative_path.parts[:-1]:
-            parent = parent / part
-            if parent.is_symlink():
-                raise ValueError(
-                    "GGUF path cannot traverse a symbolic-link directory: "
-                    f"{filename!r}"
-                )
+        if len(found) > 1:
+            raise ValueError(
+                f"ambiguous GGUF file name {filename!r}; use one of: "
+                + ", ".join(sorted(str(p.relative_to(snapshot)) for p in found))
+            )
 
-        candidate = snapshot / relative_path
-        if candidate.is_symlink() or candidate.is_file():
-            matches.append(candidate)
+        for path in found:
+            if removed_name is None:
+                removed_name = str(path.relative_to(snapshot))
+
+        matches.extend(found)
 
     if not matches:
-        return False
+        return None
 
     blobs_dir = repo_dir / "blobs"
     blob_targets = set()
@@ -160,7 +177,30 @@ def remove_cached_gguf(repo_dir: Path, filename: str) -> bool:
         if blob.is_file() and not _snapshot_references_blob(snapshots, blob):
             blob.unlink()
 
-    return True
+    return removed_name
+
+
+def _snapshot_gguf(
+    snapshot: Path,
+    relative_path: Path,
+    filename: str,
+) -> Path | None:
+    parent = snapshot
+
+    for part in relative_path.parts[:-1]:
+        parent = parent / part
+        if parent.is_symlink():
+            raise ValueError(
+                "GGUF path cannot traverse a symbolic-link directory: "
+                f"{filename!r}"
+            )
+
+    candidate = snapshot / relative_path
+
+    if candidate.is_symlink() or candidate.is_file():
+        return candidate
+
+    return None
 
 
 def _snapshot_references_blob(snapshots: list[Path], blob: Path) -> bool:
@@ -196,11 +236,11 @@ def cached_model_file(
     _, snapshot = info
 
     if filename:
-        filename = normalize_model_filename(filename)
-        candidate = snapshot / filename
+        for candidate in model_filename_candidates(filename):
+            candidate_path = snapshot / candidate
 
-        if candidate.is_file():
-            return candidate
+            if candidate_path.is_file():
+                return candidate_path
 
         raise FileNotFoundError(f"file is not cached: {repo}/{filename}")
 
@@ -209,7 +249,7 @@ def cached_model_file(
     ggufs = [
         p
         for p in files
-        if p.name.endswith(".gguf") and "mmproj" not in p.name
+        if is_gguf_filename(p.name) and "mmproj" not in p.name
     ]
 
     if len(ggufs) == 1:
